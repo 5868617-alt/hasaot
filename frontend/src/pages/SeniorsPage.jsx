@@ -107,7 +107,7 @@ export default function SeniorsPage() {
             <option value="transport">לפי שכונה</option>
           </select>
           <button className="btn-primary" onClick={() => setModal('add')}>+ הוסף קשיש</button>
-          <button className="btn-secondary" onClick={() => window.open('http://localhost:5000/api/seniors/export')}>📥 ייצוא Excel</button>
+          <button className="btn-secondary" onClick={() => window.open(`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:5000'}/api/seniors/export`)}>📥 ייצוא Excel</button>
         </div>
       </div>
 
