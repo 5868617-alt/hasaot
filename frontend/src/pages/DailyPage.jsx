@@ -6,9 +6,11 @@ const DAY_NAMES = { '1': 'ראשון', '2': 'שני', '3': 'שלישי', '4': '�
 const DAYS = ['1', '2', '3', '4', '5'];
 const SHIFTS = ['הכל', 'בוקר', 'צהריים'];
 
+const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
 function LineCard({ transport, seniors, selectedDay }) {
   const exportLine = () =>
-    window.open(`http://localhost:5000/api/transport/${transport._id}/export?day=${selectedDay}`);
+    window.open(`${BASE_URL}/api/transport/${transport._id}/export?day=${selectedDay}`);
 
   return (
     <div className="line-card">
@@ -59,7 +61,7 @@ export default function DailyPage() {
   }, [selectedDay, selectedDate]);
 
   const exportExcel = () =>
-    window.open(`http://localhost:5000/api/transport/daily/export?day=${selectedDay}`);
+    window.open(`${BASE_URL}/api/transport/daily/export?day=${selectedDay}`);
 
   const showMorning = selectedShift === 'הכל' || selectedShift === 'בוקר';
   const showAfternoon = selectedShift === 'הכל' || selectedShift === 'צהריים';
