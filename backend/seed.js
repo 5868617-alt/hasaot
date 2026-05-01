@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Transport = require('./models/Transport');
 const Senior = require('./models/Senior');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/hasaot';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:fgWXfjlJCQUfaIdphfhEbVUKiEmJsyIV@switchback.proxy.rlwy.net:50421/hasaot?authSource=admin';
 
 const DAYS_A = ['א'];
 const DAYS_AB = ['א', 'ב'];
