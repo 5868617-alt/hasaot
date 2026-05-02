@@ -24,7 +24,7 @@ router.get('/export/all', async (req, res) => {
       }
     }
     const buf = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    res.setHeader('Content-Disposition', `attachment; filename=transports-${today}.xlsx`);
+    res.setHeader('Content-Disposition', `attachment; filename=transports-day${today}.xlsx`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buf);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -47,7 +47,7 @@ router.get('/daily/export', async (req, res) => {
       }
     }
     const buf = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    res.setHeader('Content-Disposition', `attachment; filename=daily-${today}.xlsx`);
+    res.setHeader('Content-Disposition', `attachment; filename=daily-day${today}.xlsx`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buf);
   } catch (e) { res.status(500).json({ error: e.message }); }
