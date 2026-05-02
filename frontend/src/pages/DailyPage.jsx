@@ -9,7 +9,7 @@ const SHIFTS = ['הכל', 'בוקר', 'צהריים'];
 const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 const downloadFile = async (url, filename) => {
-  const res = await fetch(url);
+  const res = await fetch(url, { mode: 'cors' });
   if (!res.ok) { alert('שגיאה בהורדה'); return; }
   const blob = new Blob([await res.arrayBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const a = document.createElement('a');
