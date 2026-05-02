@@ -10,11 +10,15 @@ const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://lo
 
 const downloadFile = async (url, filename) => {
   const res = await fetch(url);
+  if (!res.ok) { alert('שגיאה בהורדה'); return; }
   const blob = await res.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 };
 
 function LineCard({ transport, seniors, selectedDay }) {
