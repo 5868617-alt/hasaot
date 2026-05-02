@@ -74,10 +74,10 @@ export default function DailyPage() {
   }, [selectedDay, selectedDate]);
 
   const exportExcel = () =>
-    downloadFile(`${BASE_URL}/api/transport/daily/export?day=${selectedDay}`, 'daily.xlsx');
+    downloadFile(`${BASE_URL}/api/transport/daily/export?day=${selectedDay}&t=${Date.now()}`, 'daily.xlsx');
 
   const exportAll = () =>
-    downloadFile(`${BASE_URL}/api/transport/export/all?day=${selectedDay}`, 'all-transports.xlsx');
+    downloadFile(`${BASE_URL}/api/transport/export/all?day=${selectedDay}&t=${Date.now()}`, 'all-transports.xlsx');
 
   const showMorning = selectedShift === 'הכל' || selectedShift === 'בוקר';
   const showAfternoon = selectedShift === 'הכל' || selectedShift === 'צהריים';
