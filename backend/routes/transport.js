@@ -9,6 +9,29 @@ const NUM_TO_DAY = { '1': 'א', '2': 'ב', '3': 'ג', '4': 'ד', '5': 'ה' };
 
 const resolveDay = (q) => NUM_TO_DAY[q] || q || DAY_MAP[new Date().getDay()] || 'א';
 
+router.get('/export/all', async (req, res) => {
+  try {
+    const wb = xlsx.utils.book_new();
+    for (const day of ['א', 'ב', 'ג', 'ד', 'ה']) {
+      const dayName = { 'א': 'ראשון', 'ב': 'שני', 'ג': 'שלישי', 'ד': 'רביעי', 'ה': 'חמישי' }[day];
+      for (const shift of ['בוקר', 'צהריים']) {
+        const transports = await Transport.find({ activeDays: day, shift });
+        for (const t of transports) {
+          const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
+          const seniors = await Senior.find({ [field]: t._id, arrivalDays: day });
+          const data = seniors.map(s => ({ 'שם': s.name, 'כתובת': s.address || '', 'טלפון': s.phones[0] || '' }));
+          const ws = xlsx.utils.json_to_sheet(data.length ? data : [{ 'שם': 'אין נוסעים' }]);
+          xlsx.utils.book_append_sheet(wb, ws, `${dayName}-${shift}-${t.name}`.substring(0, 31));
+        }
+      }
+    }
+    const buf = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename=all-transports.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/daily/export', async (req, res) => {
   try {
     const today = resolveDay(req.query.day);
