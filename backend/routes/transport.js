@@ -40,23 +40,25 @@ router.get('/daily/export', async (req, res) => {
 
 router.get('/export/all', async (req, res) => {
   try {
-    const today = resolveDay(req.query.day);
-    const allTransports = [];
-    for (const shift of ['בוקר', 'צהריים']) {
-      const transports = await Transport.find({ activeDays: today, shift });
-      for (const t of transports) {
-        const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
-        const seniors = await Senior.find({ [field]: t._id, arrivalDays: today });
-        allTransports.push({ title: `${shift}-${t.name}`, seniors });
-      }
-    }
-    const maxRows = allTransports.length ? Math.max(...allTransports.map(t => t.seniors.length)) : 0;
-    const wsData = [allTransports.flatMap(t => [t.title, ''])];
-    for (let i = 0; i < maxRows; i++)
-      wsData.push(allTransports.flatMap(t => [t.seniors[i]?.name || '', '']));
     const wb = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(wsData), 'transports');
-    sendExcel(res, wb, `transports-day${today}.xlsx`);
+    for (const day of ['א', 'ב', 'ג', 'ד', 'ה']) {
+      const dayName = { 'א': 'ראשון', 'ב': 'שני', 'ג': 'שלישי', 'ד': 'רביעי', 'ה': 'חמישי' }[day];
+      const allTransports = [];
+      for (const shift of ['בוקר', 'צהריים']) {
+        const transports = await Transport.find({ activeDays: day, shift });
+        for (const t of transports) {
+          const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
+          const seniors = await Senior.find({ [field]: t._id, arrivalDays: day });
+          allTransports.push({ title: `${shift}-${t.name}`, seniors });
+        }
+      }
+      const maxRows = allTransports.length ? Math.max(...allTransports.map(t => t.seniors.length)) : 0;
+      const wsData = [allTransports.flatMap(t => [t.title, ''])];
+      for (let i = 0; i < maxRows; i++)
+        wsData.push(allTransports.flatMap(t => [t.seniors[i]?.name || '', '']));
+      xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(wsData), dayName);
+    }
+    sendExcel(res, wb, 'all-week.xlsx');
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
