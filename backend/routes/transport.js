@@ -12,7 +12,7 @@ const resolveDay = (q) => NUM_TO_DAY[q] || q || DAY_MAP[new Date().getDay()] || 
 const sendExcel = (res, wb, filename) => {
   const buf = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+  res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
   res.send(buf);
 };
 
