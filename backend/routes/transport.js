@@ -19,20 +19,21 @@ const sendExcel = (res, wb, filename) => {
 router.get('/daily/export', async (req, res) => {
   try {
     const today = resolveDay(req.query.day);
-    const rows = [];
+    const allTransports = [];
     for (const shift of ['בוקר', 'צהריים']) {
       const transports = await Transport.find({ activeDays: today, shift });
       for (const t of transports) {
         const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
         const seniors = await Senior.find({ [field]: t._id, arrivalDays: today });
-        rows.push({ name: `--- ${shift}: ${t.name} ---`, address: '', phone: '' });
-        seniors.forEach(s => rows.push({ name: s.name, address: s.address || '', phone: s.phones[0] || '' }));
-        if (!seniors.length) rows.push({ name: 'no passengers', address: '', phone: '' });
+        allTransports.push({ title: `${shift}-${t.name}`, seniors });
       }
     }
+    const maxRows = allTransports.length ? Math.max(...allTransports.map(t => t.seniors.length)) : 0;
+    const wsData = [allTransports.map(t => t.title)];
+    for (let i = 0; i < maxRows; i++)
+      wsData.push(allTransports.map(t => t.seniors[i]?.name || ''));
     const wb = xlsx.utils.book_new();
-    const ws = xlsx.utils.json_to_sheet(rows);
-    xlsx.utils.book_append_sheet(wb, ws, 'transports');
+    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(wsData), 'transports');
     sendExcel(res, wb, `daily-day${today}.xlsx`);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -40,20 +41,21 @@ router.get('/daily/export', async (req, res) => {
 router.get('/export/all', async (req, res) => {
   try {
     const today = resolveDay(req.query.day);
-    const rows = [];
+    const allTransports = [];
     for (const shift of ['בוקר', 'צהריים']) {
       const transports = await Transport.find({ activeDays: today, shift });
       for (const t of transports) {
         const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
         const seniors = await Senior.find({ [field]: t._id, arrivalDays: today });
-        rows.push({ name: `--- ${shift}: ${t.name} ---`, address: '', phone: '' });
-        seniors.forEach(s => rows.push({ name: s.name, address: s.address || '', phone: s.phones[0] || '' }));
-        if (!seniors.length) rows.push({ name: 'no passengers', address: '', phone: '' });
+        allTransports.push({ title: `${shift}-${t.name}`, seniors });
       }
     }
+    const maxRows = allTransports.length ? Math.max(...allTransports.map(t => t.seniors.length)) : 0;
+    const wsData = [allTransports.map(t => t.title)];
+    for (let i = 0; i < maxRows; i++)
+      wsData.push(allTransports.map(t => t.seniors[i]?.name || ''));
     const wb = xlsx.utils.book_new();
-    const ws = xlsx.utils.json_to_sheet(rows);
-    xlsx.utils.book_append_sheet(wb, ws, 'transports');
+    xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(wsData), 'transports');
     sendExcel(res, wb, `transports-day${today}.xlsx`);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
