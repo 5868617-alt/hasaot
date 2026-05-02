@@ -29,9 +29,9 @@ router.get('/daily/export', async (req, res) => {
       }
     }
     const maxRows = allTransports.length ? Math.max(...allTransports.map(t => t.seniors.length)) : 0;
-    const wsData = [allTransports.map(t => t.title)];
+    const wsData = [allTransports.flatMap(t => [t.title, ''])];
     for (let i = 0; i < maxRows; i++)
-      wsData.push(allTransports.map(t => t.seniors[i]?.name || ''));
+      wsData.push(allTransports.flatMap(t => [t.seniors[i]?.name || '', '']));
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(wsData), 'transports');
     sendExcel(res, wb, `daily-day${today}.xlsx`);
@@ -51,9 +51,9 @@ router.get('/export/all', async (req, res) => {
       }
     }
     const maxRows = allTransports.length ? Math.max(...allTransports.map(t => t.seniors.length)) : 0;
-    const wsData = [allTransports.map(t => t.title)];
+    const wsData = [allTransports.flatMap(t => [t.title, ''])];
     for (let i = 0; i < maxRows; i++)
-      wsData.push(allTransports.map(t => t.seniors[i]?.name || ''));
+      wsData.push(allTransports.flatMap(t => [t.seniors[i]?.name || '', '']));
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet(wsData), 'transports');
     sendExcel(res, wb, `transports-day${today}.xlsx`);
