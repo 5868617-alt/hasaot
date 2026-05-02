@@ -8,9 +8,18 @@ const SHIFTS = ['הכל', 'בוקר', 'צהריים'];
 
 const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
+const downloadFile = async (url, filename) => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+};
+
 function LineCard({ transport, seniors, selectedDay }) {
   const exportLine = () =>
-    window.open(`${BASE_URL}/api/transport/${transport._id}/export?day=${selectedDay}`);
+    downloadFile(`${BASE_URL}/api/transport/${transport._id}/export?day=${selectedDay}`, 'transport.xlsx');
 
   return (
     <div className="line-card">
@@ -61,7 +70,10 @@ export default function DailyPage() {
   }, [selectedDay, selectedDate]);
 
   const exportExcel = () =>
-    window.open(`${BASE_URL}/api/transport/daily/export?day=${selectedDay}`);
+    downloadFile(`${BASE_URL}/api/transport/daily/export?day=${selectedDay}`, 'daily.xlsx');
+
+  const exportAll = () =>
+    downloadFile(`${BASE_URL}/api/transport/export/all?day=${selectedDay}`, 'all-transports.xlsx');
 
   const showMorning = selectedShift === 'הכל' || selectedShift === 'בוקר';
   const showAfternoon = selectedShift === 'הכל' || selectedShift === 'צהריים';
@@ -71,7 +83,7 @@ export default function DailyPage() {
       <div className="page-header">
         <h1>הסעות יום {DAY_NAMES[selectedDay]}</h1>
         <button className="btn-secondary" onClick={exportExcel}>📥 הורד הסעות יום זה</button>
-        <button className="btn-secondary" onClick={() => window.open(`${BASE_URL}/api/transport/export/all?day=${selectedDay}`)}>📥 הורד כל ההסעות</button>
+        <button className="btn-secondary" onClick={exportAll}>📥 הורד כל ההסעות</button>
       </div>
 
       <div className="filters">
