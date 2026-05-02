@@ -11,7 +11,7 @@ const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://lo
 const downloadFile = async (url, filename) => {
   const res = await fetch(url);
   if (!res.ok) { alert('שגיאה בהורדה'); return; }
-  const blob = await res.blob();
+  const blob = new Blob([await res.arrayBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
