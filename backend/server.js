@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
-app.use(cors({ origin: ['https://day-center-misgav.vercel.app', 'http://localhost:5173'] }));
+app.use(cors({ origin: /\.vercel\.app$|localhost/, credentials: true }));
 app.use(express.json());
 
 app.use('/api/seniors', require('./routes/seniors'));
