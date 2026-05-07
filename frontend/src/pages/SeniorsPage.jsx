@@ -2,6 +2,22 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import SeniorModal from '../components/SeniorModal';
 
+function ConfirmModal({ name, onConfirm, onCancel }) {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth:'380px', textAlign:'center', gap:'1.2rem'}}>
+        <div style={{fontSize:'3rem'}}>🗑️</div>
+        <h2 style={{color:'#c53030'}}>מחיקת קשיש</h2>
+        <p style={{color:'#4a5568', fontSize:'1rem'}}>האם למחוק את <strong>{name}</strong>?<br/>פעולה זו אינה ניתנת לביטול.</p>
+        <div style={{display:'flex', gap:'0.75rem', justifyContent:'center'}}>
+          <button className="btn-danger" onClick={onConfirm}>כן, מחק</button>
+          <button className="btn-secondary" onClick={onCancel}>ביטול</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AbsenceModal({ senior, onClose }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -66,6 +82,7 @@ export default function SeniorsPage() {
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
   const [absenceModal, setAbsenceModal] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const [sortBy, setSortBy] = useState('none');
 
   const load = async (q = '') => {
@@ -76,8 +93,8 @@ export default function SeniorsPage() {
   useEffect(() => { load(); }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('למחוק קשיש זה?')) return;
     await api.delete(`/seniors/${id}`);
+    setConfirmDelete(null);
     load(search);
   };
 
@@ -133,7 +150,7 @@ export default function SeniorsPage() {
               <td>
                 <button className="btn-edit" onClick={() => setModal(s)}>✏️</button>
                 <button className="btn-secondary" style={{padding:'0.25rem 0.5rem', fontSize:'0.8rem'}} onClick={() => setAbsenceModal(s)}>📅</button>
-                <button className="btn-delete" onClick={() => handleDelete(s._id)}>🗑️</button>
+                <button className="btn-delete" onClick={() => setConfirmDelete(s)}>🗑️</button>
               </td>
             </tr>
           ))}
@@ -141,6 +158,7 @@ export default function SeniorsPage() {
       </table>
       </div>
 
+      {confirmDelete && <ConfirmModal name={confirmDelete.name} onConfirm={() => handleDelete(confirmDelete._id)} onCancel={() => setConfirmDelete(null)} />}
       {absenceModal && <AbsenceModal senior={absenceModal} onClose={() => setAbsenceModal(null)} />}
       {modal && (
         <SeniorModal
