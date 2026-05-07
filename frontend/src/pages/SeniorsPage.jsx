@@ -154,7 +154,7 @@ export default function SeniorsPage() {
                 <div className="row-actions">
                   <button className="btn-edit" title="עריכת פרטי קשיש" onClick={() => setModal(s)}>✏️ עריכה</button>
                   <button className="btn-secondary" title="ניהול היעדרויות" style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600'}} onClick={() => setAbsenceModal(s)}>📅</button>
-                  <button className="btn-delete" title="מחיקת קשיש" onClick={() => setConfirmDelete(s)}>🗑️ מחיקה</button>
+                  <button className="btn-delete" title="מחיקת קשיש" onClick={() => setConfirmDelete(s)}>🗑️</button>
                 </div>
               </td>
             </tr>
