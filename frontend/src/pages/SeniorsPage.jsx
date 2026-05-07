@@ -114,7 +114,8 @@ export default function SeniorsPage() {
         </div>
       </div>
 
-      <table className="data-table">
+      <div className="table-wrapper">
+        <table className="data-table">
         <thead>
           <tr>
             <th>שם</th><th>כתובת</th><th>טלפון</th><th>ימים</th><th>הסעה בוקר</th><th>הסעה צהריים</th><th>פעולות</th>
@@ -138,6 +139,7 @@ export default function SeniorsPage() {
           ))}
         </tbody>
       </table>
+      </div>
 
       {absenceModal && <AbsenceModal senior={absenceModal} onClose={() => setAbsenceModal(null)} />}
       {modal && (

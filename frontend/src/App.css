@@ -110,8 +110,10 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 0.55rem 1.1
 .btn-export-line:hover { background: rgba(255,255,255,0.32); }
 
 /* ─── TABLE ─── */
+.table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .data-table {
   width: 100%;
+  min-width: 900px;
   border-collapse: separate;
   border-spacing: 0;
   background: white;
