@@ -2,6 +2,26 @@ const router = require('express').Router();
 const Senior = require('../models/Senior');
 const xlsx = require('xlsx');
 
+router.get('/export/addresses', async (req, res) => {
+  try {
+    const seniors = await Senior.find().sort({ name: 1 });
+    const data = seniors.map((s, i) => ({
+      '#': i + 1,
+      'שם': s.name,
+      'כתובת': s.address || '',
+    }));
+    const ws = xlsx.utils.json_to_sheet(data, { origin: 'A2' });
+    xlsx.utils.sheet_add_aoa(ws, [['רשימת קשישים - שם וכתובת']], { origin: 'A1' });
+    ws['!cols'] = [{ wch: 4 }, { wch: 25 }, { wch: 35 }];
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, 'שם וכתובת');
+    const buf = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename=seniors-addresses.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/export', async (req, res) => {
   try {
     const seniors = await Senior.find()
