@@ -62,8 +62,8 @@ function AbsenceModal({ senior, onClose }) {
             <tbody>
               {absences.map(a => (
                 <tr key={a._id}>
-                  <td>{new Date(a.startDate).toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</td>
-                  <td>{new Date(a.endDate).toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</td>
+                  <td>{new Date(a.startDate).toLocaleDateString('he-IL', { day:'numeric', month:'numeric', year:'2-digit' })}</td>
+                  <td>{new Date(a.endDate).toLocaleDateString('he-IL', { day:'numeric', month:'numeric', year:'2-digit' })}</td>
                   <td>{a.note}</td>
                   <td><button className="btn-delete" onClick={() => handleDelete(a._id)}>🗑️</button></td>
                 </tr>
@@ -147,9 +147,11 @@ export default function SeniorsPage() {
               <td>{s.morningTransport?.name || '—'}</td>
               <td>{s.afternoonTransport?.name || '—'}</td>
               <td>
-                <button className="btn-edit" onClick={() => setModal(s)}>✏️</button>
-                <button className="btn-secondary" style={{padding:'0.25rem 0.5rem', fontSize:'0.8rem'}} onClick={() => setAbsenceModal(s)}>📅</button>
-                <button className="btn-delete" onClick={() => setConfirmDelete(s)}>🗑️</button>
+                <div className="row-actions">
+                  <button className="btn-edit" title="עריכת פרטי קשיש" onClick={() => setModal(s)}>✏️ עריכה</button>
+                  <button className="btn-secondary" title="ניהול היעדרויות" style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600'}} onClick={() => setAbsenceModal(s)}>📅</button>
+                  <button className="btn-delete" title="מחיקת קשיש" onClick={() => setConfirmDelete(s)}>🗑️ מחיקה</button>
+                </div>
               </td>
             </tr>
           ))}
