@@ -86,8 +86,10 @@ export default function DailyPage() {
     <div>
       <div className="page-header">
         <h1>הסעות יום {DAY_NAMES[selectedDay]}</h1>
-        <button className="btn-secondary" onClick={exportExcel}>📥 הורד הסעות יום זה</button>
-        <button className="btn-secondary" onClick={exportAll}>📥 הורד כל ההסעות</button>
+        <div className="actions">
+          <button className="btn-primary" onClick={exportExcel}>📥 הורד הסעות יום זה</button>
+          <button className="btn-secondary" onClick={exportAll}>📂 הורד כל ההסעות</button>
+        </div>
       </div>
 
       <div className="filters">

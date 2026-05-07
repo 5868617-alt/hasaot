@@ -127,8 +127,7 @@ export default function SeniorsPage() {
           <button className="btn-secondary" onClick={() => {
             fetch(`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:5000'}/api/seniors/export`)
               .then(r => r.blob()).then(blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'seniors.xlsx'; a.click(); });
-          }}>📥 ייצוא Excel</button>
-        </div>
+          }}>📥 ייצוא Excel</button>        </div>
       </div>
 
       <div className="table-wrapper">

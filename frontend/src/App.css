@@ -82,20 +82,20 @@ body {
 }
 
 /* ─── BUTTONS ─── */
-button { cursor: pointer; border: none; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 0.9rem; font-family: inherit; font-weight: 500; transition: all 0.18s; }
+button { cursor: pointer; border: none; border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 0.9rem; font-family: inherit; font-weight: 600; transition: all 0.18s; display: inline-flex; align-items: center; gap: 0.4rem; }
 
-.btn-primary { background: #2b6cb0; color: white; box-shadow: 0 1px 4px rgba(43,108,176,0.25); }
-.btn-primary:hover { background: #1a56a0; box-shadow: 0 3px 10px rgba(43,108,176,0.35); transform: translateY(-1px); }
+.btn-primary { background: #2b6cb0; color: white; box-shadow: 0 2px 6px rgba(43,108,176,0.3); }
+.btn-primary:hover { background: #1a56a0; box-shadow: 0 4px 12px rgba(43,108,176,0.4); transform: translateY(-1px); }
 
 .btn-secondary { background: white; color: #2d3748; border: 1.5px solid #e2e8f0; }
-.btn-secondary:hover { background: #f7fafc; border-color: #cbd5e0; }
+.btn-secondary:hover { background: #f7fafc; border-color: #a0aec0; }
 
-.btn-danger { background: #fff5f5; color: #c53030; border: 1.5px solid #fed7d7; }
-.btn-danger:hover { background: #fed7d7; }
+.btn-danger { background: #c53030; color: white; box-shadow: 0 2px 6px rgba(197,48,48,0.3); }
+.btn-danger:hover { background: #9b2c2c; transform: translateY(-1px); }
 
-.btn-edit { background: #ebf8ff; color: #2b6cb0; font-size: 1rem; padding: 0.3rem 0.55rem; border-radius: 7px; }
+.btn-edit { background: #ebf8ff; color: #2b6cb0; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 7px; font-weight: 600; border: 1.5px solid #bee3f8; }
 .btn-edit:hover { background: #bee3f8; }
-.btn-delete { background: #fff5f5; color: #e53e3e; font-size: 1rem; padding: 0.3rem 0.55rem; border-radius: 7px; }
+.btn-delete { background: #fff5f5; color: #e53e3e; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 7px; font-weight: 600; border: 1.5px solid #fed7d7; }
 .btn-delete:hover { background: #fed7d7; }
 
 .btn-export-line {
@@ -108,6 +108,8 @@ button { cursor: pointer; border: none; border-radius: 8px; padding: 0.55rem 1.1
   margin-right: 0.4rem;
 }
 .btn-export-line:hover { background: rgba(255,255,255,0.32); }
+
+.row-actions { display: flex; gap: 0.4rem; align-items: center; }
 
 /* ─── TABLE ─── */
 .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
