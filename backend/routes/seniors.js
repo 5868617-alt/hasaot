@@ -22,13 +22,13 @@ router.get('/export/addresses', async (req, res) => {
   try {
     const seniors = await Senior.find().sort({ name: 1 });
     const data = seniors.map(s => ({
-      'שם': s.name,
-      'כתובת': s.address || '',
       'אזור': getArea(s.address),
+      'כתובת': s.address || '',
+      'שם': s.name,
     }));
     const ws = xlsx.utils.json_to_sheet(data, { origin: 'A2' });
     xlsx.utils.sheet_add_aoa(ws, [['רשימת קשישים - שם, כתובת ואזור']], { origin: 'A1' });
-    ws['!cols'] = [{ wch: 25 }, { wch: 35 }, { wch: 20 }];
+    ws['!cols'] = [{ wch: 20 }, { wch: 35 }, { wch: 25 }];
     ws['!sheetView'] = [{ rightToLeft: true }];
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, ws, 'שם וכתובת');
