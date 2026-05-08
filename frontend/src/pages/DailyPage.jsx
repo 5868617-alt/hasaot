@@ -11,25 +11,44 @@ const HEB_DAY_NAMES = { 'א': 'ראשון', 'ב': 'שני', 'ג': 'שלישי', 
 const EMPTY = { name: '', shift: 'בוקר', time: '', escortName: '', escortPhone: '', activeDays: [] };
 
 function TransportModal({ transport, onSave, onClose }) {
+  const isEdit = !!transport?._id;
   const [form, setForm] = useState(transport || EMPTY);
+  const [allSeniors, setAllSeniors] = useState([]);
+  const [search, setSearch] = useState('');
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const toggleDay = (d) =>
     set('activeDays', form.activeDays.includes(d)
       ? form.activeDays.filter(x => x !== d)
       : [...form.activeDays, d]);
 
+  useEffect(() => {
+    if (isEdit) api.get('/seniors').then(({ data }) => setAllSeniors(data));
+  }, [isEdit]);
+
+  const field = form.shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
+  const assignedIds = new Set(allSeniors.filter(s => s[field]?._id === transport._id || s[field] === transport._id).map(s => s._id));
+
+  const toggleSenior = async (senior) => {
+    const isAssigned = assignedIds.has(senior._id);
+    const update = { [field]: isAssigned ? null : transport._id };
+    const { data: updated } = await api.put(`/seniors/${senior._id}`, { ...senior, ...update });
+    setAllSeniors(prev => prev.map(s => s._id === updated._id ? updated : s));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { data } = transport?._id
+    const { data } = isEdit
       ? await api.put(`/transport/${transport._id}`, form)
       : await api.post('/transport', form);
     onSave(data);
   };
 
+  const filtered = allSeniors.filter(s => s.name.includes(search));
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>{transport?._id ? 'עריכת הסעה' : 'הוספת הסעה'}</h2>
+      <div className="modal" style={{ width: isEdit ? '560px' : '440px' }} onClick={e => e.stopPropagation()}>
+        <h2>{isEdit ? 'עריכת הסעה' : 'הוספת הסעה'}</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           <label>שם הסעה</label>
           <input required value={form.name} onChange={e => set('name', e.target.value)} />
@@ -53,6 +72,28 @@ function TransportModal({ transport, onSave, onClose }) {
               </label>
             ))}
           </div>
+
+          {isEdit && (
+            <>
+              <label style={{ marginTop: '0.5rem' }}>נוסעים בהסעה</label>
+              <input
+                placeholder="חיפוש קשיש..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '0.4rem' }}>
+                {filtered.length === 0 && <p style={{ color: '#a0aec0', textAlign: 'center', padding: '0.5rem' }}>אין תוצאות</p>}
+                {filtered.map(s => (
+                  <label key={s._id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', background: assignedIds.has(s._id) ? '#ebf8ff' : 'transparent' }}>
+                    <input type="checkbox" checked={assignedIds.has(s._id)} onChange={() => toggleSenior(s)} />
+                    <span>{s.name}</span>
+                    {s.address && <span style={{ color: '#718096', fontSize: '0.82rem' }}>{s.address}</span>}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+
           <div className="modal-actions">
             <button type="submit" className="btn-primary">💾 שמור</button>
             <button type="button" className="btn-secondary" onClick={onClose}>ביטול</button>
