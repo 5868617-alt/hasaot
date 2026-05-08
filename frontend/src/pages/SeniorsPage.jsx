@@ -154,7 +154,7 @@ export default function SeniorsPage() {
         </thead>
         <tbody>
           {sorted.map(s => (
-            <tr key={s._id}>
+            <tr key={s._id} style={s.frozen ? { background: '#ebf8ff', opacity: 0.7 } : {}}>
               <td>{s.name}</td>
               <td>{s.address}</td>
               <td>{s.phones?.join(' / ')}</td>
@@ -164,6 +164,16 @@ export default function SeniorsPage() {
               <td>
                 <div className="row-actions">
                   <button className="btn-edit" title="עריכת פרטי קשיש" onClick={() => setModal(s)}>✏️ עריכה</button>
+                  <button
+                    className={s.frozen ? 'btn-danger' : 'btn-secondary'}
+                    title={s.frozen ? 'בטל הקפאה' : 'הקפא קשיש'}
+                    style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600'}}
+                    onClick={async () => {
+                      await api.put(`/seniors/${s._id}`, { ...s, morningTransport: s.morningTransport?._id || s.morningTransport || null, afternoonTransport: s.afternoonTransport?._id || s.afternoonTransport || null, frozen: !s.frozen });
+                      load(search);
+                    }}>
+                    {s.frozen ? '❄️ מוקפא' : '❄️'}
+                  </button>
                   <button className="btn-secondary" title="ניהול היעדרויות" style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600'}} onClick={() => setAbsenceModal(s)}>📅</button>
                   <button className="btn-delete" title="מחיקת קשיש" onClick={() => setConfirmDelete(s)}>🗑️</button>
                 </div>
