@@ -18,7 +18,7 @@ function ConfirmModal({ name, onConfirm, onCancel }) {
   );
 }
 
-function AbsenceModal({ senior, onClose }) {
+function AbsenceModal({ senior, onClose, onFreezeToggle }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [note, setNote] = useState('');
@@ -47,6 +47,18 @@ function AbsenceModal({ senior, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth:'700px', width:'95%'}}>
         <h2>היעדרויות - {senior.name}</h2>
+
+        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', background: senior.frozen ? '#ebf8ff' : '#f7fafc', border: `1.5px solid ${senior.frozen ? '#90cdf4' : '#e2e8f0'}`, borderRadius:'8px', padding:'0.6rem 1rem', marginBottom:'1rem'}}>
+          <span style={{fontWeight:600, color: senior.frozen ? '#2b6cb0' : '#4a5568'}}>
+            {senior.frozen ? '❄️ הקשיש מוקפא - לא יופיע בהסעות' : 'הקשיש פעיל'}
+          </span>
+          <button
+            className={senior.frozen ? 'btn-primary' : 'btn-secondary'}
+            style={{fontSize:'0.85rem'}}
+            onClick={onFreezeToggle}>
+            {senior.frozen ? 'בטל הקפאה' : '❄️ הקפא'}
+          </button>
+        </div>
         <div style={{display:'flex', flexDirection:'column', gap:'0.5rem', marginBottom:'1rem'}}>
           <label>מתאריך: <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></label>
           <label>עד תאריך: <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></label>
@@ -164,17 +176,9 @@ export default function SeniorsPage() {
               <td>
                 <div className="row-actions">
                   <button className="btn-edit" title="עריכת פרטי קשיש" onClick={() => setModal(s)}>✏️ עריכה</button>
-                  <button
-                    className={s.frozen ? 'btn-danger' : 'btn-secondary'}
-                    title={s.frozen ? 'בטל הקפאה' : 'הקפא קשיש'}
-                    style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600'}}
-                    onClick={async () => {
-                      await api.put(`/seniors/${s._id}`, { ...s, morningTransport: s.morningTransport?._id || s.morningTransport || null, afternoonTransport: s.afternoonTransport?._id || s.afternoonTransport || null, frozen: !s.frozen });
-                      load(search);
-                    }}>
-                    {s.frozen ? '❄️ מוקפא' : '❄️'}
+                  <button className="btn-secondary" title={s.frozen ? 'מוקפא - לחץ לפתיחת היעדרויות' : 'ניהול היעדרויות'} style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600', background: s.frozen ? '#bee3f8' : '', borderColor: s.frozen ? '#90cdf4' : ''}} onClick={() => setAbsenceModal(s)}>
+                    {s.frozen ? '❄️' : '📅'}
                   </button>
-                  <button className="btn-secondary" title="ניהול היעדרויות" style={{padding:'0.35rem 0.6rem', fontSize:'0.82rem', fontWeight:'600'}} onClick={() => setAbsenceModal(s)}>📅</button>
                   <button className="btn-delete" title="מחיקת קשיש" onClick={() => setConfirmDelete(s)}>🗑️</button>
                 </div>
               </td>
@@ -185,7 +189,11 @@ export default function SeniorsPage() {
       </div>
 
       {confirmDelete && <ConfirmModal name={confirmDelete.name} onConfirm={() => handleDelete(confirmDelete._id)} onCancel={() => setConfirmDelete(null)} />}
-      {absenceModal && <AbsenceModal senior={absenceModal} onClose={() => setAbsenceModal(null)} />}
+      {absenceModal && <AbsenceModal senior={absenceModal} onClose={() => setAbsenceModal(null)} onFreezeToggle={async () => {
+        await api.put(`/seniors/${absenceModal._id}`, { ...absenceModal, morningTransport: absenceModal.morningTransport?._id || absenceModal.morningTransport || null, afternoonTransport: absenceModal.afternoonTransport?._id || absenceModal.afternoonTransport || null, frozen: !absenceModal.frozen });
+        await load(search);
+        setAbsenceModal(prev => ({ ...prev, frozen: !prev.frozen }));
+      }} />}
       {modal && (
         <SeniorModal
           senior={modal === 'add' ? null : modal}
