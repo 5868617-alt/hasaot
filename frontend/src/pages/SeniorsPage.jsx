@@ -92,12 +92,12 @@ function AbsenceModal({ senior, onClose, onFreezeToggle }) {
 export default function SeniorsPage() {
   const [seniors, setSeniors] = useState([]);
   const [transports, setTransports] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => sessionStorage.getItem('seniorsSearch') || '');
   const [modal, setModal] = useState(null);
   const [absenceModal, setAbsenceModal] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [sortBy, setSortBy] = useState('none');
-  const [filterTransport, setFilterTransport] = useState('');
+  const [sortBy, setSortBy] = useState(() => sessionStorage.getItem('seniorsSortBy') || 'none');
+  const [filterTransport, setFilterTransport] = useState(() => sessionStorage.getItem('seniorsFilterTransport') || '');
 
   const load = async (q = '') => {
     const { data } = await api.get('/seniors', { params: { name: q } });
@@ -136,12 +136,12 @@ export default function SeniorsPage() {
         <h1>ניהול קשישים ({seniors.length})</h1>
         <div className="actions">
           <input placeholder="חיפוש לפי שם..." value={search}
-            onChange={e => { setSearch(e.target.value); load(e.target.value); }} />
-          <select value={filterTransport} onChange={e => setFilterTransport(e.target.value)} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
+            onChange={e => { setSearch(e.target.value); sessionStorage.setItem('seniorsSearch', e.target.value); load(e.target.value); }} />
+          <select value={filterTransport} onChange={e => { setFilterTransport(e.target.value); sessionStorage.setItem('seniorsFilterTransport', e.target.value); }} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
             <option value="">סנן לפי הסעה...</option>
             {transports.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
           </select>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
+          <select value={sortBy} onChange={e => { setSortBy(e.target.value); sessionStorage.setItem('seniorsSortBy', e.target.value); }} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
             <option value="none">מיון...</option>
             <option value="name">א-ב</option>
             <option value="transport">לפי שכונה</option>

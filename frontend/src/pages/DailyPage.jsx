@@ -157,12 +157,13 @@ function LineCard({ transport, seniors, selectedDay, onEdit, onDelete }) {
 
 export default function DailyPage() {
   const todayKey = DAY_MAP[new Date().getDay()] ?? '1';
-  const [selectedDay, setSelectedDay] = useState(() => DAY_MAP[new Date().getDay()] ?? '1');
+  const [selectedDay, setSelectedDay] = useState(() => sessionStorage.getItem('dailyDay') || DAY_MAP[new Date().getDay()] || '1');
   const [selectedDate, setSelectedDate] = useState(() => {
+    if (sessionStorage.getItem('dailyDate')) return sessionStorage.getItem('dailyDate');
     const t = new Date();
     return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   });
-  const [selectedShift, setSelectedShift] = useState('הכל');
+  const [selectedShift, setSelectedShift] = useState(() => sessionStorage.getItem('dailyShift') || 'הכל');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(null);
@@ -207,7 +208,7 @@ export default function DailyPage() {
       <div className="filters">
         <div className="filter-group">
           <span>תאריך:</span>
-          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
+          <input type="date" value={selectedDate} onChange={e => { setSelectedDate(e.target.value); sessionStorage.setItem('dailyDate', e.target.value); }}
             style={{padding:'0.4rem', borderRadius:'6px', border:'1px solid #cbd5e0'}} />
         </div>
         <div className="filter-group">
@@ -215,7 +216,7 @@ export default function DailyPage() {
           {DAYS.map(d => (
             <button key={d}
               className={selectedDay === d ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setSelectedDay(d)}>
+              onClick={() => { setSelectedDay(d); sessionStorage.setItem('dailyDay', d); }}>
               {DAY_NAMES[d]}
             </button>
           ))}
@@ -225,7 +226,7 @@ export default function DailyPage() {
           {SHIFTS.map(s => (
             <button key={s}
               className={selectedShift === s ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setSelectedShift(s)}>
+              onClick={() => { setSelectedShift(s); sessionStorage.setItem('dailyShift', s); }}>
               {s}
             </button>
           ))}
