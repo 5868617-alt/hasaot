@@ -167,21 +167,21 @@ export default function DailyPage() {
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(null);
 
-  const fetchData = () => {
+  const fetchData = (day = selectedDay, date = selectedDate) => {
     setLoading(true);
-    api.get('/transport/daily', { params: { day: selectedDay, date: selectedDate } })
+    api.get('/transport/daily', { params: { day, date } })
       .then(({ data }) => setData(data))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, [selectedDay, selectedDate]);
+  useEffect(() => { fetchData(selectedDay, selectedDate); }, [selectedDay, selectedDate]);
 
-  const handleSave = () => { setModal(null); fetchData(); };
+  const handleSave = () => { setModal(null); fetchData(selectedDay, selectedDate); };
 
   const handleDelete = async (id) => {
     if (!confirm('למחוק הסעה זו?')) return;
     await api.delete(`/transport/${id}`);
-    fetchData();
+    fetchData(selectedDay, selectedDate);
   };
 
   const exportExcel = () =>
