@@ -44,6 +44,9 @@ const transports = [
   { name: 'גוש 80 ש.הנביא בוכרים גאולה - בוקר', shift: 'בוקר', time: '8:35', escortName: 'ריקי', escortPhone: '052-3429086', activeDays: DAYS_ABCDE },
   { name: 'רמות - בוקר',           shift: 'בוקר', time: '8:35', escortName: 'נפתלי', escortPhone: '054-8998652', activeDays: DAYS_ABCDE },
   { name: 'רכס סנהדריה רוממה - בוקר', shift: 'בוקר', time: '8:30', escortName: 'אילה', escortPhone: '050-4104453', activeDays: DAYS_ABCDE },
+  // ===== חדש: יום ראשון =====
+  { name: 'שמואל הנביא מא"ש גאולה - בוקר', shift: 'בוקר', time: '8:35', escortName: 'ריקי', escortPhone: '052-3429086', activeDays: DAYS_A },
+  { name: 'גוש 80 סנהדריה בוכרים - בוקר', shift: 'בוקר', time: '8:35', escortName: 'ריקי', escortPhone: '052-3429086', activeDays: DAYS_A },
   // ===== צהריים =====
   { name: 'מקור ברוך גאולה שמואל הנביא - צהריים', shift: 'צהריים', time: '14:00', escortPhone: '050-4104453', activeDays: DAYS_ABCDE },
   { name: 'בית וגן רחביה מרכז העיר - צהריים',     shift: 'צהריים', time: '14:00', escortPhone: '050-4104453', activeDays: DAYS_ACDE },
