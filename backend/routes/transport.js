@@ -24,7 +24,7 @@ router.get('/daily/export', async (req, res) => {
       const transports = await Transport.find({ activeDays: today, shift });
       for (const t of transports) {
         const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
-        const seniors = await Senior.find({ [field]: t._id, arrivalDays: today });
+        const seniors = await Senior.find({ [field]: t._id, arrivalDays: today }).sort({ name: 1 });
         allTransports.push({ title: `${shift}-${t.name}`, seniors });
       }
     }
@@ -48,7 +48,7 @@ router.get('/export/all', async (req, res) => {
         const transports = await Transport.find({ activeDays: day, shift });
         for (const t of transports) {
           const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
-          const seniors = await Senior.find({ [field]: t._id, arrivalDays: day });
+          const seniors = await Senior.find({ [field]: t._id, arrivalDays: day }).sort({ name: 1 });
           allTransports.push({ title: `${shift}-${t.name}`, seniors });
         }
       }
@@ -76,7 +76,7 @@ router.get('/daily', async (req, res) => {
       const transports = await Transport.find({ activeDays: today, shift });
       const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
       result[shift] = await Promise.all(transports.map(async (t) => {
-        const seniors = await Senior.find({ [field]: t._id, arrivalDays: today });
+        const seniors = await Senior.find({ [field]: t._id, arrivalDays: today }).sort({ name: 1 });
         const filtered = seniors.filter(s => !absentIds.has(s._id.toString()));
         return { transport: t, seniors: filtered };
       }));
@@ -91,7 +91,7 @@ router.get('/:id/export', async (req, res) => {
     const t = await Transport.findById(req.params.id);
     if (!t) return res.status(404).json({ error: 'not found' });
     const field = t.shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
-    const seniors = await Senior.find({ [field]: t._id, arrivalDays: today });
+    const seniors = await Senior.find({ [field]: t._id, arrivalDays: today }).sort({ name: 1 });
     const data = seniors.map((s, i) => ({
       '#': i + 1, name: s.name, address: s.address || '', phone: s.phones?.[0] || ''
     }));
