@@ -79,18 +79,23 @@ function AbsenceModal({ senior, onClose }) {
 
 export default function SeniorsPage() {
   const [seniors, setSeniors] = useState([]);
+  const [transports, setTransports] = useState([]);
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
   const [absenceModal, setAbsenceModal] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [sortBy, setSortBy] = useState('none');
+  const [filterTransport, setFilterTransport] = useState('');
 
   const load = async (q = '') => {
     const { data } = await api.get('/seniors', { params: { name: q } });
     setSeniors(data);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    api.get('/transport').then(({ data }) => setTransports(data));
+  }, []);
 
   const handleDelete = async (id) => {
     await api.delete(`/seniors/${id}`);
@@ -106,10 +111,12 @@ export default function SeniorsPage() {
   };
 
   const sorted = useMemo(() => {
-    if (sortBy === 'name') return [...seniors].sort((a, b) => a.name.localeCompare(b.name, 'he'));
-    if (sortBy === 'transport') return [...seniors].sort((a, b) => (a.morningTransport?.name || '').localeCompare(b.morningTransport?.name || '', 'he'));
-    return seniors;
-  }, [seniors, sortBy]);
+    let list = seniors;
+    if (filterTransport) list = list.filter(s => s.morningTransport?._id === filterTransport || s.afternoonTransport?._id === filterTransport);
+    if (sortBy === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name, 'he'));
+    if (sortBy === 'transport') return [...list].sort((a, b) => (a.morningTransport?.name || '').localeCompare(b.morningTransport?.name || '', 'he'));
+    return list;
+  }, [seniors, sortBy, filterTransport]);
 
   return (
     <div>
@@ -118,10 +125,9 @@ export default function SeniorsPage() {
         <div className="actions">
           <input placeholder="חיפוש לפי שם..." value={search}
             onChange={e => { setSearch(e.target.value); load(e.target.value); }} />
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
-            <option value="none">מיון...</option>
-            <option value="name">א-ב</option>
-            <option value="transport">לפי שכונה</option>
+          <select value={filterTransport} onChange={e => setFilterTransport(e.target.value)} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
+            <option value="">סנן לפי הסעה...</option>
+            {transports.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
           </select>
           <button className="btn-primary" onClick={() => setModal('add')}>+ הוסף קשיש</button>
           <button className="btn-secondary" onClick={() => {
