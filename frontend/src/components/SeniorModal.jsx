@@ -44,6 +44,27 @@ export default function SeniorModal({ senior, onSave, onClose }) {
     });
   }, []);
 
+  const handleTransportChange = (field, newId) => {
+    const otherField = field === 'morningTransport' ? 'afternoonTransport' : 'morningTransport';
+    const allList = [...transports.בוקר, ...transports.צהריים];
+    const prevTransport = allList.find(t => t._id === form[field]);
+    const newTransport = allList.find(t => t._id === newId);
+    const otherTransport = allList.find(t => t._id === form[otherField]);
+
+    let arrivalDays = [...form.arrivalDays];
+
+    if (prevTransport) {
+      const otherDays = otherTransport?.activeDays || [];
+      arrivalDays = arrivalDays.filter(d => !prevTransport.activeDays.includes(d) || otherDays.includes(d));
+    }
+    if (newTransport) {
+      for (const d of newTransport.activeDays)
+        if (!arrivalDays.includes(d)) arrivalDays.push(d);
+    }
+
+    setForm(f => ({ ...f, [field]: newId, arrivalDays }));
+  };
+
   const toggleDay = (day) => setForm(f => ({
     ...f,
     arrivalDays: f.arrivalDays.includes(day) ? f.arrivalDays.filter(d => d !== day) : [...f.arrivalDays, day],
@@ -88,13 +109,13 @@ export default function SeniorModal({ senior, onSave, onClose }) {
         </div>
 
         <label>הסעה בבוקר</label>
-        <select value={form.morningTransport} onChange={e => setForm({ ...form, morningTransport: e.target.value })}>
+        <select value={form.morningTransport} onChange={e => handleTransportChange('morningTransport', e.target.value)}>
           <option value="">-- ללא --</option>
           {transports.בוקר.map(t => <option key={t._id} value={t._id}>{t.name} ({t.time})</option>)}
         </select>
 
         <label>הסעה בצהריים</label>
-        <select value={form.afternoonTransport} onChange={e => setForm({ ...form, afternoonTransport: e.target.value })}>
+        <select value={form.afternoonTransport} onChange={e => handleTransportChange('afternoonTransport', e.target.value)}>
           <option value="">-- ללא --</option>
           {transports.צהריים.map(t => <option key={t._id} value={t._id}>{t.name} ({t.time})</option>)}
         </select>

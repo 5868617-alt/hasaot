@@ -30,8 +30,29 @@ function TransportModal({ transport, onSave, onClose }) {
 
   const toggleSenior = async (senior) => {
     const isAssigned = assignedIds.has(senior._id);
-    const update = { [field]: isAssigned ? null : transport._id };
-    const { data: updated } = await api.put(`/seniors/${senior._id}`, { ...senior, ...update });
+    const otherField = field === 'morningTransport' ? 'afternoonTransport' : 'morningTransport';
+    const otherTransportId = senior[otherField]?._id || senior[otherField];
+
+    let arrivalDays = [...(senior.arrivalDays || [])];
+
+    if (!isAssigned) {
+      // הוספה - מוסיפים ימי ההסעה שחסרים
+      for (const d of transport.activeDays) {
+        if (!arrivalDays.includes(d)) arrivalDays.push(d);
+      }
+    } else {
+      // הסרה - מסירים ימים שאין לו הסעה אחרת בהם
+      if (otherTransportId) {
+        const { data: otherTransport } = await api.get(`/transport`).then(r => ({ data: r.data.find(t => t._id === otherTransportId) }));
+        const otherDays = otherTransport?.activeDays || [];
+        arrivalDays = arrivalDays.filter(d => !transport.activeDays.includes(d) || otherDays.includes(d));
+      } else {
+        arrivalDays = arrivalDays.filter(d => !transport.activeDays.includes(d));
+      }
+    }
+
+    const update = { [field]: isAssigned ? null : transport._id, arrivalDays };
+    const { data: updated } = await api.put(`/seniors/${senior._id}`, { ...senior, morningTransport: senior.morningTransport?._id || senior.morningTransport || null, afternoonTransport: senior.afternoonTransport?._id || senior.afternoonTransport || null, ...update });
     setAllSeniors(prev => prev.map(s => s._id === updated._id ? updated : s));
   };
 
