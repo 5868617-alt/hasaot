@@ -6,6 +6,63 @@ const DAY_NAMES = { '1': 'ראשון', '2': 'שני', '3': 'שלישי', '4': '�
 const DAYS = ['1', '2', '3', '4', '5'];
 const SHIFTS = ['הכל', 'בוקר', 'צהריים'];
 
+const HEB_DAYS = ['א', 'ב', 'ג', 'ד', 'ה'];
+const HEB_DAY_NAMES = { 'א': 'ראשון', 'ב': 'שני', 'ג': 'שלישי', 'ד': 'רביעי', 'ה': 'חמישי' };
+const EMPTY = { name: '', shift: 'בוקר', time: '', escortName: '', escortPhone: '', activeDays: [] };
+
+function TransportModal({ transport, onSave, onClose }) {
+  const [form, setForm] = useState(transport || EMPTY);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const toggleDay = (d) =>
+    set('activeDays', form.activeDays.includes(d)
+      ? form.activeDays.filter(x => x !== d)
+      : [...form.activeDays, d]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { data } = transport?._id
+      ? await api.put(`/transport/${transport._id}`, form)
+      : await api.post('/transport', form);
+    onSave(data);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2>{transport?._id ? 'עריכת הסעה' : 'הוספת הסעה'}</h2>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <label>שם הסעה</label>
+          <input required value={form.name} onChange={e => set('name', e.target.value)} />
+          <label>משמרת</label>
+          <select value={form.shift} onChange={e => set('shift', e.target.value)}>
+            <option value="בוקר">בוקר</option>
+            <option value="צהריים">צהריים</option>
+          </select>
+          <label>שעה</label>
+          <input value={form.time} onChange={e => set('time', e.target.value)} placeholder="למשל 08:00" />
+          <label>שם מלווה</label>
+          <input value={form.escortName} onChange={e => set('escortName', e.target.value)} />
+          <label>טלפון מלווה</label>
+          <input value={form.escortPhone} onChange={e => set('escortPhone', e.target.value)} />
+          <label>ימים פעילים</label>
+          <div className="days-grid">
+            {HEB_DAYS.map(d => (
+              <label key={d} className="day-check">
+                <input type="checkbox" checked={form.activeDays.includes(d)} onChange={() => toggleDay(d)} />
+                {HEB_DAY_NAMES[d]}
+              </label>
+            ))}
+          </div>
+          <div className="modal-actions">
+            <button type="submit" className="btn-primary">💾 שמור</button>
+            <button type="button" className="btn-secondary" onClick={onClose}>ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 const downloadFile = async (url, filename) => {
@@ -21,7 +78,7 @@ const downloadFile = async (url, filename) => {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 
-function LineCard({ transport, seniors, selectedDay }) {
+function LineCard({ transport, seniors, selectedDay, onEdit, onDelete }) {
   const exportLine = () =>
     downloadFile(`${BASE_URL}/api/transport/${transport._id}/export?day=${selectedDay}`, 'transport.xlsx');
 
@@ -36,6 +93,8 @@ function LineCard({ transport, seniors, selectedDay }) {
           {transport.escortName && <span className="escort">מלווה: {transport.escortName}</span>}
           {transport.escortPhone && <span className="escort">📞 {transport.escortPhone}</span>}
           <button className="btn-export-line" onClick={exportLine} title="הורד הסעה זו">📥</button>
+          <button className="btn-export-line" onClick={onEdit} title="עריכה">✏️</button>
+          <button className="btn-export-line" onClick={onDelete} title="מחיקה" style={{color:'#fc8181'}}>🗑️</button>
         </div>
       </div>
       {seniors.length === 0
@@ -65,13 +124,24 @@ export default function DailyPage() {
   const [selectedShift, setSelectedShift] = useState('הכל');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState(null);
 
-  useEffect(() => {
+  const fetchData = () => {
     setLoading(true);
     api.get('/transport/daily', { params: { day: selectedDay, date: selectedDate } })
       .then(({ data }) => setData(data))
       .finally(() => setLoading(false));
-  }, [selectedDay, selectedDate]);
+  };
+
+  useEffect(() => { fetchData(); }, [selectedDay, selectedDate]);
+
+  const handleSave = () => { setModal(null); fetchData(); };
+
+  const handleDelete = async (id) => {
+    if (!confirm('למחוק הסעה זו?')) return;
+    await api.delete(`/transport/${id}`);
+    fetchData();
+  };
 
   const exportExcel = () =>
     downloadFile(`${BASE_URL}/api/transport/daily/export?day=${selectedDay}&t=${Date.now()}`, 'daily.xlsx');
@@ -87,6 +157,7 @@ export default function DailyPage() {
       <div className="page-header">
         <h1>הסעות יום {DAY_NAMES[selectedDay]}</h1>
         <div className="actions">
+          <button className="btn-primary" onClick={() => setModal('add')}>+ הוסף הסעה</button>
           <button className="btn-primary" onClick={exportExcel}>📥 הורד הסעות יום זה</button>
           <button className="btn-secondary" onClick={exportAll}>📂 הורד כל ההסעות</button>
         </div>
@@ -131,7 +202,9 @@ export default function DailyPage() {
                 ? <p className="empty">אין הסעות בוקר ביום זה</p>
                 : <div className="lines-grid">
                     {data.בוקר?.map(({ transport, seniors }) => (
-                      <LineCard key={transport._id} transport={transport} seniors={seniors} selectedDay={selectedDay} />
+                      <LineCard key={transport._id} transport={transport} seniors={seniors} selectedDay={selectedDay}
+                        onEdit={() => setModal(transport)}
+                        onDelete={() => handleDelete(transport._id)} />
                     ))}
                   </div>
               }
@@ -144,13 +217,23 @@ export default function DailyPage() {
                 ? <p className="empty">אין הסעות צהריים ביום זה</p>
                 : <div className="lines-grid">
                     {data.צהריים?.map(({ transport, seniors }) => (
-                      <LineCard key={transport._id} transport={transport} seniors={seniors} selectedDay={selectedDay} />
+                      <LineCard key={transport._id} transport={transport} seniors={seniors} selectedDay={selectedDay}
+                        onEdit={() => setModal(transport)}
+                        onDelete={() => handleDelete(transport._id)} />
                     ))}
                   </div>
               }
             </div>
           )}
         </>
+      )}
+
+      {modal && (
+        <TransportModal
+          transport={modal === 'add' ? null : modal}
+          onSave={handleSave}
+          onClose={() => setModal(null)}
+        />
       )}
     </div>
   );
