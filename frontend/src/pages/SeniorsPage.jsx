@@ -129,6 +129,11 @@ export default function SeniorsPage() {
             <option value="">סנן לפי הסעה...</option>
             {transports.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
           </select>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', border:'1px solid #cbd5e0', fontSize:'0.95rem'}}>
+            <option value="none">מיון...</option>
+            <option value="name">א-ב</option>
+            <option value="transport">לפי שכונה</option>
+          </select>
           <button className="btn-primary" onClick={() => setModal('add')}>+ הוסף קשיש</button>
           <button className="btn-secondary" onClick={() => {
             fetch(`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:5000'}/api/seniors/export/addresses`)
