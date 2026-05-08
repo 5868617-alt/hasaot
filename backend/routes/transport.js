@@ -77,7 +77,7 @@ router.get('/daily', async (req, res) => {
       const field = shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
       result[shift] = await Promise.all(transports.map(async (t) => {
         const seniors = await Senior.find({ [field]: t._id, arrivalDays: today }).sort({ name: 1 });
-        const filtered = seniors.filter(s => !absentIds.has(s._id.toString()));
+        const filtered = seniors.filter(s => !absentIds.has(s._id.toString()) && !s.frozen);
         return { transport: t, seniors: filtered };
       }));
     }
