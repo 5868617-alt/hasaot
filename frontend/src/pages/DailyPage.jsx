@@ -10,7 +10,7 @@ const HEB_DAYS = ['א', 'ב', 'ג', 'ד', 'ה'];
 const HEB_DAY_NAMES = { 'א': 'ראשון', 'ב': 'שני', 'ג': 'שלישי', 'ד': 'רביעי', 'ה': 'חמישי' };
 const EMPTY = { name: '', shift: 'בוקר', time: '', escortName: '', escortPhone: '', activeDays: [] };
 
-function TransportModal({ transport, onSave, onClose }) {
+function TransportModal({ transport, onSave, onClose, selectedDay }) {
   const isEdit = !!transport?._id;
   const [form, setForm] = useState(transport || EMPTY);
   const [allSeniors, setAllSeniors] = useState([]);
@@ -21,39 +21,65 @@ function TransportModal({ transport, onSave, onClose }) {
       ? form.activeDays.filter(x => x !== d)
       : [...form.activeDays, d]);
 
+  const NUM_TO_HEB = { '1': 'א', '2': 'ב', '3': 'ג', '4': 'ד', '5': 'ה' };
+  const hebDay = NUM_TO_HEB[selectedDay];
+
   useEffect(() => {
     if (isEdit) api.get('/seniors').then(({ data }) => setAllSeniors(data));
   }, [isEdit]);
 
   const field = form.shift === 'בוקר' ? 'morningTransport' : 'afternoonTransport';
-  const assignedIds = new Set(allSeniors.filter(s => s[field]?._id === transport._id || s[field] === transport._id).map(s => s._id));
+  // משויכים להסעה = מי שיש לו את ההסעה הזו בשדה המתאים
+  const assignedIds = new Set(
+    allSeniors
+      .filter(s => s[field]?._id === transport?._id || s[field] === transport?._id)
+      .map(s => s._id)
+  );
+  // פעילים ביום הנבחר = משויכים וגם יש להם את היום הזה ב-arrivalDays
+  const activeOnDayIds = new Set(
+    allSeniors
+      .filter(s => (s[field]?._id === transport?._id || s[field] === transport?._id) && s.arrivalDays?.includes(hebDay))
+      .map(s => s._id)
+  );
 
   const toggleSenior = async (senior) => {
     const isAssigned = assignedIds.has(senior._id);
-    const otherField = field === 'morningTransport' ? 'afternoonTransport' : 'morningTransport';
-    const otherTransportId = senior[otherField]?._id || senior[otherField];
-
-    let arrivalDays = [...(senior.arrivalDays || [])];
+    const isActiveToday = activeOnDayIds.has(senior._id);
 
     if (!isAssigned) {
-      // הוספה - מוסיפים ימי ההסעה שחסרים
-      for (const d of transport.activeDays) {
-        if (!arrivalDays.includes(d)) arrivalDays.push(d);
-      }
+      // הוספה להסעה + הוסף יום
+      const arrivalDays = senior.arrivalDays?.includes(hebDay)
+        ? senior.arrivalDays
+        : [...(senior.arrivalDays || []), hebDay];
+      const update = { [field]: transport._id, arrivalDays };
+      const { data: updated } = await api.put(`/seniors/${senior._id}`, {
+        ...senior,
+        morningTransport: senior.morningTransport?._id || senior.morningTransport || null,
+        afternoonTransport: senior.afternoonTransport?._id || senior.afternoonTransport || null,
+        ...update
+      });
+      setAllSeniors(prev => prev.map(s => s._id === updated._id ? updated : s));
+    } else if (isActiveToday) {
+      // משויך להסעה אבל פעיל ביום הזה - רק מסיר את היום
+      const arrivalDays = senior.arrivalDays.filter(d => d !== hebDay);
+      const { data: updated } = await api.put(`/seniors/${senior._id}`, {
+        ...senior,
+        morningTransport: senior.morningTransport?._id || senior.morningTransport || null,
+        afternoonTransport: senior.afternoonTransport?._id || senior.afternoonTransport || null,
+        arrivalDays
+      });
+      setAllSeniors(prev => prev.map(s => s._id === updated._id ? updated : s));
     } else {
-      // הסרה - מסירים ימים שאין לו הסעה אחרת בהם
-      if (otherTransportId) {
-        const { data: otherTransport } = await api.get(`/transport`).then(r => ({ data: r.data.find(t => t._id === otherTransportId) }));
-        const otherDays = otherTransport?.activeDays || [];
-        arrivalDays = arrivalDays.filter(d => !transport.activeDays.includes(d) || otherDays.includes(d));
-      } else {
-        arrivalDays = arrivalDays.filter(d => !transport.activeDays.includes(d));
-      }
+      // משויך אבל לא פעיל ביום הזה - הוסף את היום
+      const arrivalDays = [...(senior.arrivalDays || []), hebDay];
+      const { data: updated } = await api.put(`/seniors/${senior._id}`, {
+        ...senior,
+        morningTransport: senior.morningTransport?._id || senior.morningTransport || null,
+        afternoonTransport: senior.afternoonTransport?._id || senior.afternoonTransport || null,
+        arrivalDays
+      });
+      setAllSeniors(prev => prev.map(s => s._id === updated._id ? updated : s));
     }
-
-    const update = { [field]: isAssigned ? null : transport._id, arrivalDays };
-    const { data: updated } = await api.put(`/seniors/${senior._id}`, { ...senior, morningTransport: senior.morningTransport?._id || senior.morningTransport || null, afternoonTransport: senior.afternoonTransport?._id || senior.afternoonTransport || null, ...update });
-    setAllSeniors(prev => prev.map(s => s._id === updated._id ? updated : s));
   };
 
   const handleSubmit = async (e) => {
@@ -104,13 +130,18 @@ function TransportModal({ transport, onSave, onClose }) {
               />
               <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '0.4rem' }}>
                 {filtered.length === 0 && <p style={{ color: '#a0aec0', textAlign: 'center', padding: '0.5rem' }}>אין תוצאות</p>}
-                {filtered.map(s => (
-                  <label key={s._id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', background: assignedIds.has(s._id) ? '#ebf8ff' : 'transparent' }}>
-                    <input type="checkbox" checked={assignedIds.has(s._id)} onChange={() => toggleSenior(s)} />
-                    <span>{s.name}</span>
-                    {s.address && <span style={{ color: '#718096', fontSize: '0.82rem' }}>{s.address}</span>}
-                  </label>
-                ))}
+                {filtered.map(s => {
+                  const isAssigned = assignedIds.has(s._id);
+                  const isActiveToday = activeOnDayIds.has(s._id);
+                  return (
+                    <label key={s._id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', background: isActiveToday ? '#ebf8ff' : isAssigned ? '#fffbeb' : 'transparent' }}>
+                      <input type="checkbox" checked={isActiveToday} onChange={() => toggleSenior(s)} />
+                      <span>{s.name}</span>
+                      {isAssigned && !isActiveToday && <span style={{ color: '#d69e2e', fontSize: '0.78rem' }}>לא פעיל ביום זה</span>}
+                      {s.address && <span style={{ color: '#718096', fontSize: '0.82rem' }}>{s.address}</span>}
+                    </label>
+                  );
+                })}
               </div>
             </>
           )}
@@ -296,6 +327,7 @@ export default function DailyPage() {
           transport={modal === 'add' ? null : modal}
           onSave={handleSave}
           onClose={() => setModal(null)}
+          selectedDay={selectedDay}
         />
       )}
     </div>
