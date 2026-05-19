@@ -25,7 +25,8 @@ export default function SeniorModal({ senior, onSave, onClose }) {
     name: '', address: '', neighborhood: '', phones: [''], arrivalDays: [],
     morningTransport: '', afternoonTransport: '',
     ...senior,
-    phones: senior?.phones?.length ? senior.phones : [''],
+    arrivalDays: senior?.arrivalDays ? [...senior.arrivalDays] : [],
+    phones: senior?.phones?.length ? [...senior.phones] : [''],
     morningTransport: senior?.morningTransport?._id || senior?.morningTransport || '',
     afternoonTransport: senior?.afternoonTransport?._id || senior?.afternoonTransport || '',
   });
